@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,9 +11,8 @@ import (
 
 func main() {
 	etsyAPIKey := os.Getenv("ETSY_API_KEY")
-	// etsyURI := "https://openapi.etsy.com/v2/listings/trending?active&title=facemask&api_key="
-	etsyURI := "https://openapi.etsy.com/v2/listings/active?keywords=face+mask&api_key="
-	etsyAPIURL := etsyURI + etsyAPIKey
+	etsyAPIURL := getActiveListings("face+mask", etsyAPIKey)
+
 	fmt.Println(etsyAPIURL)
 	resp, err := http.Get(etsyAPIURL)
 	if err != nil {
@@ -26,10 +24,27 @@ func main() {
 	var ResponseStruct APIResponse
 	json.Unmarshal(bodyBytes, &ResponseStruct)
 
-	fmt.Printf("API Response as struct %+v\n", ResponseStruct)
+	// fmt.Printf("API Response as struct %+v\n", ResponseStruct)
+	//filter by most views, or most sales?
+	//figure out trending keywords / tags for search listings
+	//sort on views?
+	//https://openapi.etsy.com/v2/listings/active?keywords=face+mask&sort_on=score&api_key=i1l7s0q019amb0m4nqmv267r
 
 	ResponseJSON, _ := json.MarshalIndent(ResponseStruct, "", "\t")
 	err = ioutil.WriteFile("output.json", ResponseJSON, 0644)
+
+}
+
+func getEtsyBaseFeed() string {
+	return "https://openapi.etsy.com/v2/feeds"
+}
+
+func getActiveListings(keywords, etsyAPIKey string) string {
+	return fmt.Sprintf("https://openapi.etsy.com/v2/listings/active?sort_on=score&keywords=%sw&api_key=%s", keywords, etsyAPIKey)
+}
+
+func getTrendingListings(etsyAPIKey string) string {
+	return fmt.Sprintf("https://openapi.etsy.com/v2/listings/trending?&api_key=%s", etsyAPIKey)
 
 }
 
@@ -52,8 +67,3 @@ type Result struct {
 	Views        int      `json:"views"`
 	TaxonomyPath []string `json:"taxonomy_path"`
 }
-
-// func get() {+
-// 	// resp, err := http.Get("")
-
-// }
